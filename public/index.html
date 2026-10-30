@@ -1,88 +1,66 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#087f88">
-    <meta
-      name="description"
-      content="Prospectador de clientes de Softdev.com.mx: encuentra nuevas oportunidades de negocio."
-    >
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Prospectador de clientes de Softdev.com.mx" />
     <title>Prospectador de clientes | Softdev.com.mx</title>
-    <link rel="stylesheet" href="/styles.css">
-    <script src="/app.js" defer></script>
+    <link rel="icon" href="imgs/favicon.ico" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="architecture-overrides.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="Softdev.com.mx, Prospectador de clientes">
-          <span class="brand-mark" aria-hidden="true">S</span>
+          <img class="brand-mark" src="imgs/softdev-logo.png" alt="Softdev.com.mx" />
           <span class="brand-copy">
             <strong>Softdev<span>.com.mx</span></strong>
             <span>Inteligencia para crecer</span>
           </span>
         </a>
-        <span class="connection-status">
-          <span class="status-dot" aria-hidden="true"></span>
-          Prospectador en línea
-        </span>
+        <div class="topbar-actions">
+          <button id="theme-toggle" class="secondary-button" type="button" aria-label="Cambiar a tema oscuro">Tema oscuro</button>
+          <div id="connection-status" class="connection-status connection-unknown" role="status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span id="connection-label">Sin verificar</span>
+          </div>
+        </div>
       </header>
 
-      <section class="chat-panel" aria-labelledby="chat-title">
-        <div class="chat-heading">
-          <div class="assistant-avatar" aria-hidden="true">
-            <svg viewBox="0 0 32 32">
-              <path d="M7 10.5h18M7 16h12M7 21.5h8" />
-              <circle cx="23" cy="21" r="4" />
-              <path d="m21.5 21 1 1 2-2" />
-            </svg>
+      <main class="chat-panel" aria-labelledby="chat-title">
+        <section class="chat-heading">
+          <div class="assistant-avatar">
+            <img src="imgs/bot.svg" alt="" aria-hidden="true" />
           </div>
           <div class="heading-copy">
             <span class="eyebrow">TU ALIADO COMERCIAL</span>
             <h1 id="chat-title">Prospectador de clientes</h1>
             <p>Encuentra oportunidades y convierte conversaciones en relaciones.</p>
           </div>
-        </div>
+        </section>
 
-        <div
-          id="messages"
-          class="messages"
-          aria-live="polite"
-          aria-relevant="additions text"
-          aria-label="Mensajes de la conversación"
-        >
-          <p class="welcome-message">
-            ¡Hola! Soy tu Prospectador de clientes. Cuéntame qué tipo de clientes buscas y te ayudaré a encontrar nuevas oportunidades.
-          </p>
+        <div id="messages" class="messages" aria-live="polite" aria-label="Mensajes de la conversación">
+          <p class="welcome-message">¡Hola! Soy tu Prospectador de clientes. Cuéntame qué tipo de clientes buscas y te ayudaré a encontrar nuevas oportunidades.</p>
         </div>
 
         <form id="chat-form" class="composer">
           <label class="sr-only" for="message-input">Tu mensaje</label>
-          <textarea
-            id="message-input"
-            name="message"
-            rows="1"
-            maxlength="2000"
-            placeholder="Describe el cliente ideal que buscas..."
-            required
-          ></textarea>
+          <textarea id="message-input" maxlength="2000" rows="1" placeholder="Describe el cliente ideal que buscas..." required></textarea>
           <div class="composer-footer">
             <span class="composer-hint">Presiona Enter para enviar · Mayús + Enter para nueva línea</span>
             <span id="character-count" class="character-count">0 / 2000</span>
+            <button id="clear-button" class="secondary-button" type="button">Limpiar</button>
             <button id="send-button" class="send-button" type="submit">
-              <span>Enviar</span>
-              <svg aria-hidden="true" viewBox="0 0 20 20">
-                <path d="m3 10 14-7-4.8 14-2.7-5.3L3 10Z" />
-                <path d="m9.5 11.7 3.3-3.3" />
-              </svg>
+              <span class="spinner" aria-hidden="true" hidden></span>
+              <span class="send-label">Enviar</span>
             </button>
           </div>
         </form>
-        <p class="privacy-note">
-          <span aria-hidden="true">✦</span>
-          Impulsado por inteligencia artificial de Softdev.com.mx
-        </p>
-      </section>
-    </main>
+        <p id="save-status" class="save-status" role="status" aria-live="polite" hidden></p>
+        <p class="privacy-note"><span>✦</span> Impulsado por inteligencia artificial de Softdev.com.mx</p>
+      </main>
+    </div>
+    <script type="module" src="app.js"></script>
   </body>
 </html>

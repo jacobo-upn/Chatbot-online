@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Asistente virtual</title>
+  <path d="M32 8v6" fill="none" stroke="#eaffff" stroke-linecap="round" stroke-width="3" />
+  <circle cx="32" cy="7" r="3" fill="#baffdf" />
+  <rect x="11" y="16" width="42" height="35" rx="12" fill="#eaffff" stroke="#087f88" stroke-width="3" />
+  <path d="M18 43c3 4 8 6 14 6s11-2 14-6" fill="none" stroke="#079ca2" stroke-linecap="round" stroke-width="2.5" />
+  <circle cx="24" cy="31" r="4" fill="#087f88" />
+  <circle cx="40" cy="31" r="4" fill="#087f88" />
+  <path d="M7 28v11m50-11v11" fill="none" stroke="#eaffff" stroke-linecap="round" stroke-width="3" />
+</svg>

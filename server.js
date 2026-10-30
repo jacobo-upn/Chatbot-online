@@ -2,6 +2,11 @@ import { AIProjectClient } from "@azure/ai-projects";
 import { DefaultAzureCredential } from "@azure/identity";
 import express from "express";
 import { join } from "node:path";
+import { parseAgentResponse } from "./scripts/agent-response.js";
+import {
+  redactPowerAutomateUrlForLog,
+  saveToDataverseViaPowerAutomate,
+} from "./scripts/power-automate.js";
 
 const { FOUNDRY_PROJECT_ENDPOINT, FOUNDRY_AGENT_NAME } = process.env;
 
@@ -24,12 +29,47 @@ const openai = projectClient.getOpenAIClient({
 
 const app = express();
 const publicDirectory = join(import.meta.dirname, "public");
+const dataverseSaveStatuses = new Map();
+const dataverseStatusRetentionMs = 5 * 60 * 1000;
+const maxDataverseSaveStatuses = 100;
+
+function setDataverseSaveStatus(conversationId, status) {
+  const now = Date.now();
+  for (const [storedConversationId, entry] of dataverseSaveStatuses) {
+    if (now - entry.updatedAt > dataverseStatusRetentionMs) {
+      dataverseSaveStatuses.delete(storedConversationId);
+    }
+  }
+
+  dataverseSaveStatuses.delete(conversationId);
+  dataverseSaveStatuses.set(conversationId, { status, updatedAt: now });
+  while (dataverseSaveStatuses.size > maxDataverseSaveStatuses) {
+    dataverseSaveStatuses.delete(dataverseSaveStatuses.keys().next().value);
+  }
+}
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.static(publicDirectory));
 
 app.get("/health", (_request, response) => {
   response.json({ status: "ok" });
+});
+
+app.get("/api/chat/status/:conversationId", (request, response) => {
+  const { conversationId } = request.params;
+  if (conversationId.trim().length === 0 || conversationId.length > 200) {
+    response.status(422).json({ error: "El identificador de conversación no es válido." });
+    return;
+  }
+
+  const entry = dataverseSaveStatuses.get(conversationId);
+  if (!entry || Date.now() - entry.updatedAt > dataverseStatusRetentionMs) {
+    dataverseSaveStatuses.delete(conversationId);
+    response.json({ status: "unknown" });
+    return;
+  }
+
+  response.json({ status: entry.status });
 });
 
 app.post("/api/chat", async (request, response) => {
@@ -51,33 +91,79 @@ app.post("/api/chat", async (request, response) => {
     (typeof requestedConversationId !== "string" ||
       requestedConversationId.trim().length === 0)
   ) {
-    response.status(422).json({ error: "El identificador de conversación no es válido." });
+    response.status(422).json({
+      error: "El identificador de conversación no es válido.",
+    });
     return;
   }
 
   let operation = "conversation.create";
+
   try {
     const conversation =
       requestedConversationId === undefined
         ? await openai.conversations.create()
         : { id: requestedConversationId };
+
     operation = "responses.create";
     const result = await openai.responses.create(
       {
         conversation: conversation.id,
-        input: [{ role: "user", content: message }],
+        input: message,
+      },
+      {
+        body: {
+          agent_reference: {
+            name: FOUNDRY_AGENT_NAME,
+            type: "agent_reference",
+          },
+        },
       },
     );
+
+    console.info("Respuesta cruda recibida del agente.", {
+      response: redactPowerAutomateUrlForLog(result.output_text),
+    });
+
+    let dataverseSave = "not_queued";
+    try {
+      const agentPayload = parseAgentResponse(result.output_text);
+      console.info(
+        "JSON de prospectos generado por el agente.",
+        redactPowerAutomateUrlForLog(agentPayload),
+      );
+      dataverseSave = "queued";
+      setDataverseSaveStatus(conversation.id, "pending");
+      void saveToDataverseViaPowerAutomate(agentPayload)
+        .then((saveResult) => {
+          setDataverseSaveStatus(
+            conversation.id,
+            saveResult?.ok === true ? "succeeded" : "failed",
+          );
+        })
+        .catch((error) => {
+          setDataverseSaveStatus(conversation.id, "failed");
+          console.error("Error inesperado al guardar prospectos en Dataverse.", {
+            name: error instanceof Error ? error.name : "UnknownError",
+          });
+        });
+    } catch (error) {
+      console.error("No se enviaron prospectos a Power Automate.", {
+        error: error instanceof Error ? error.message : "Error inesperado.",
+      });
+    }
 
     response.json({
       reply: result.output_text,
       conversation_id: conversation.id,
+      dataverse_save: dataverseSave,
     });
   } catch (error) {
     const diagnostic = {
       name: error instanceof Error ? error.name : "UnknownError",
       operation,
     };
+
     if (error && typeof error === "object") {
       for (const key of ["code", "status", "statusCode", "type", "param"]) {
         const value = error[key];
@@ -89,7 +175,11 @@ app.post("/api/chat", async (request, response) => {
         }
       }
     }
-    console.error("No fue posible completar la solicitud a Microsoft Foundry.", diagnostic);
+
+    console.error(
+      "No fue posible completar la solicitud a Microsoft Foundry.",
+      diagnostic,
+    );
     response.status(502).json({
       error: "No se pudo obtener una respuesta en este momento. Inténtalo de nuevo.",
     });
