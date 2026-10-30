@@ -13,7 +13,6 @@ const connectionLabel = document.querySelector("#connection-label");
 
 let conversationId;
 let isSending = false;
-let saveStatusTimer;
 const themeStorageKey = "chat-theme";
 
 function getSavedTheme() {
@@ -75,13 +74,9 @@ function setConnectionStatus(isOnline) {
 }
 
 function showSaveStatus(text, isError = false) {
-  window.clearTimeout(saveStatusTimer);
   saveStatus.textContent = text;
   saveStatus.hidden = false;
   saveStatus.classList.toggle("save-status-error", isError);
-  saveStatusTimer = window.setTimeout(() => {
-    saveStatus.hidden = true;
-  }, 5000);
 }
 
 async function monitorDataverseSave(conversationId) {
@@ -100,13 +95,20 @@ async function monitorDataverseSave(conversationId) {
       const result = await response.json();
       if (result.status === "succeeded") {
         showSaveStatus(
-          "Power Automate confirmó el guardado de los prospectos en Dataverse.",
+          `Power Automate terminó correctamente (HTTP ${result.http_status}).`,
+        );
+        return;
+      }
+      if (result.status === "accepted") {
+        showSaveStatus(
+          `Power Automate aceptó la solicitud (HTTP ${result.http_status}), pero no confirmó el fin del flujo ni el guardado en Dataverse. Revisa el historial de ejecuciones.`,
+          true,
         );
         return;
       }
       if (result.status === "failed") {
         showSaveStatus(
-          "Power Automate no pudo confirmar el guardado en Dataverse.",
+          `Falló la llamada a Power Automate${result.http_status ? ` (HTTP ${result.http_status})` : ""}${result.error ? `: ${result.error}` : "."}`,
           true,
         );
         return;
@@ -215,10 +217,13 @@ form.addEventListener("submit", async (event) => {
     conversationId = result.conversation_id;
     addMessage(result.reply, "assistant");
     if (result.dataverse_save === "queued") {
+      showSaveStatus("Solicitud enviada; esperando respuesta de Power Automate.");
       void monitorDataverseSave(conversationId);
     } else {
       showSaveStatus(
-        "La respuesta no contenía prospectos válidos para guardar en Dataverse.",
+        result.dataverse_save_error
+          ? `No se llamó a Power Automate: ${result.dataverse_save_error}`
+          : "La respuesta no contenía prospectos válidos para guardar en Dataverse.",
         true,
       );
     }

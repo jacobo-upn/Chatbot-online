@@ -19,24 +19,47 @@ export function redactPowerAutomateUrlForLog(
   }
 
   rawUrl = rawUrl.trim();
-  const serialized = JSON.stringify(value);
-  if (typeof serialized !== "string") {
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(rawUrl);
+  } catch {
     return value;
   }
 
-  let redacted = serialized.replaceAll(rawUrl, redactUrl(rawUrl));
-  try {
-    const url = new URL(rawUrl);
-    for (const [, secret] of url.searchParams) {
-      if (secret.length > 0) {
-        redacted = redacted.replaceAll(secret, "[REDACTED]");
+  const redactValue = (currentValue, seen) => {
+    if (typeof currentValue === "string") {
+      let redacted = currentValue.replaceAll(rawUrl, redactUrl(rawUrl));
+      for (const [, secret] of parsedUrl.searchParams) {
+        if (secret.length > 0) {
+          redacted = redacted.replaceAll(secret, "[REDACTED]");
+        }
       }
+      return redacted;
     }
-  } catch {
-    return JSON.parse(redacted);
-  }
 
-  return JSON.parse(redacted);
+    if (Array.isArray(currentValue)) {
+      return currentValue.map((item) => redactValue(item, seen));
+    }
+
+    if (currentValue && typeof currentValue === "object") {
+      if (seen.has(currentValue)) {
+        return "[Circular]";
+      }
+      seen.add(currentValue);
+      const redactedObject = Object.fromEntries(
+        Object.entries(currentValue).map(([key, item]) => [
+          key,
+          redactValue(item, seen),
+        ]),
+      );
+      seen.delete(currentValue);
+      return redactedObject;
+    }
+
+    return currentValue;
+  };
+
+  return redactValue(value, new WeakSet());
 }
 
 function describeError(error) {
@@ -146,6 +169,15 @@ export async function saveToDataverseViaPowerAutomate(
         status: response.status,
       });
       return { ok: false, error: "http", status: response.status };
+    }
+
+    if (response.status === 202) {
+      outcome = "accepted";
+      logger.info(
+        "Power Automate aceptó la solicitud; el flujo aún no confirmó el resultado final.",
+        { destination, companyCount, status: response.status },
+      );
+      return { ok: true, companyCount, status: response.status };
     }
 
     outcome = "success";

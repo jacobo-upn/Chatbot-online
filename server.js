@@ -33,7 +33,7 @@ const dataverseSaveStatuses = new Map();
 const dataverseStatusRetentionMs = 5 * 60 * 1000;
 const maxDataverseSaveStatuses = 100;
 
-function setDataverseSaveStatus(conversationId, status) {
+function setDataverseSaveStatus(conversationId, status, details = {}) {
   const now = Date.now();
   for (const [storedConversationId, entry] of dataverseSaveStatuses) {
     if (now - entry.updatedAt > dataverseStatusRetentionMs) {
@@ -42,7 +42,11 @@ function setDataverseSaveStatus(conversationId, status) {
   }
 
   dataverseSaveStatuses.delete(conversationId);
-  dataverseSaveStatuses.set(conversationId, { status, updatedAt: now });
+  dataverseSaveStatuses.set(conversationId, {
+    status,
+    updatedAt: now,
+    ...details,
+  });
   while (dataverseSaveStatuses.size > maxDataverseSaveStatuses) {
     dataverseSaveStatuses.delete(dataverseSaveStatuses.keys().next().value);
   }
@@ -69,7 +73,11 @@ app.get("/api/chat/status/:conversationId", (request, response) => {
     return;
   }
 
-  response.json({ status: entry.status });
+  response.json({
+    status: entry.status,
+    ...(Number.isInteger(entry.httpStatus) ? { http_status: entry.httpStatus } : {}),
+    ...(entry.error ? { error: entry.error } : {}),
+  });
 });
 
 app.post("/api/chat", async (request, response) => {
@@ -126,6 +134,7 @@ app.post("/api/chat", async (request, response) => {
     });
 
     let dataverseSave = "not_queued";
+    let dataverseSaveError;
     try {
       const agentPayload = parseAgentResponse(result.output_text);
       console.info(
@@ -136,28 +145,41 @@ app.post("/api/chat", async (request, response) => {
       setDataverseSaveStatus(conversation.id, "pending");
       void saveToDataverseViaPowerAutomate(agentPayload)
         .then((saveResult) => {
-          setDataverseSaveStatus(
-            conversation.id,
-            saveResult?.ok === true ? "succeeded" : "failed",
-          );
+          const status = saveResult?.ok !== true
+            ? "failed"
+            : saveResult.status === 202
+              ? "accepted"
+              : "succeeded";
+          setDataverseSaveStatus(conversation.id, status, {
+            ...(Number.isInteger(saveResult?.status)
+              ? { httpStatus: saveResult.status }
+              : {}),
+            ...(saveResult?.error ? { error: saveResult.error } : {}),
+          });
         })
         .catch((error) => {
-          setDataverseSaveStatus(conversation.id, "failed");
+          setDataverseSaveStatus(conversation.id, "failed", {
+            error: error instanceof Error ? error.message : "unexpected",
+          });
           console.error("Error inesperado al guardar prospectos en Dataverse.", {
             name: error instanceof Error ? error.name : "UnknownError",
           });
         });
     } catch (error) {
+      dataverseSaveError =
+        error instanceof Error ? error.message : "Error inesperado.";
       console.error("No se enviaron prospectos a Power Automate.", {
-        error: error instanceof Error ? error.message : "Error inesperado.",
+        error: dataverseSaveError,
       });
     }
 
-    response.json({
+    const chatResponse = {
       reply: result.output_text,
       conversation_id: conversation.id,
       dataverse_save: dataverseSave,
-    });
+      ...(dataverseSaveError ? { dataverse_save_error: dataverseSaveError } : {}),
+    };
+    response.json(chatResponse);
   } catch (error) {
     const diagnostic = {
       name: error instanceof Error ? error.name : "UnknownError",

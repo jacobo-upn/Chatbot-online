@@ -6,7 +6,29 @@ import {
   saveToDataverseViaPowerAutomate,
 } from "./power-automate.js";
 
-const validPayload = { empresas: [{ nombre: "Ejemplo" }] };
+const validPayload = {
+  empresas: [
+    {
+      nombre: "Ejemplo",
+      calificacion: 1,
+      presenciaDigital: "1",
+      sector: "Pruebas",
+      domicilio: "Domicilio",
+      municipio: "Municipio",
+      estado: 1,
+      sitioWeb: "https://example.com",
+      prospectos: [
+        {
+          nombre: "Prospecto",
+          cargo: "Cargo",
+          correo: "prospecto@example.com",
+          telefono: "5550000000",
+          notasIA: "Notas",
+        },
+      ],
+    },
+  ],
+};
 
 test("parseAgentResponse rejects empty, invalid, and incomplete responses", () => {
   assert.throws(() => parseAgentResponse(" "), /vacía/);
@@ -15,9 +37,32 @@ test("parseAgentResponse rejects empty, invalid, and incomplete responses", () =
   assert.throws(() => parseAgentResponse('{"empresas":[]}'), /vacía/);
 });
 
+test("parseAgentResponse rejects payloads that do not match the Power Automate schema", () => {
+  assert.throws(
+    () => parseAgentResponse('{"empresas":[{"nombre":"Ejemplo"}]}'),
+    /requiere "presenciaDigital"/,
+  );
+});
+
+test("parseAgentResponse accepts a company without prospects", () => {
+  const payloadWithoutProspects = structuredClone(validPayload);
+  payloadWithoutProspects.empresas[0].prospectos = [];
+  assert.deepEqual(
+    parseAgentResponse(JSON.stringify(payloadWithoutProspects)),
+    payloadWithoutProspects,
+  );
+});
+
 test("parseAgentResponse returns valid agent JSON", () => {
   assert.deepEqual(
     parseAgentResponse(JSON.stringify(validPayload)),
+    validPayload,
+  );
+});
+
+test("parseAgentResponse accepts JSON inside a Markdown code fence", () => {
+  assert.deepEqual(
+    parseAgentResponse(`\n\`\`\`json\n${JSON.stringify(validPayload)}\n\`\`\``),
     validPayload,
   );
 });
@@ -125,4 +170,13 @@ test("redactPowerAutomateUrlForLog hides the configured URL and query tokens", (
 
   assert.equal(JSON.stringify(redacted).includes(rawUrl), false);
   assert.equal(JSON.stringify(redacted).includes("sensitive-token"), false);
+});
+
+test("redactPowerAutomateUrlForLog preserves numeric values", () => {
+  const redacted = redactPowerAutomateUrlForLog(
+    { calificacion: 1, presenciaDigital: 1 },
+    "https://flow.example.test/hook?sig=1",
+  );
+
+  assert.deepEqual(redacted, { calificacion: 1, presenciaDigital: 1 });
 });
