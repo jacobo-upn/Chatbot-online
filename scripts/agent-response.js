@@ -79,3 +79,44 @@ export function parseAgentResponse(outputText) {
 
   return parsed;
 }
+
+const OPPORTUNITY_RULES = [
+  ["Inteligencia Artificial", /inteligencia artificial|\bia\b|machine learning/i],
+  ["Automatización de procesos", /automatizaci[oó]n|automatizar|procesos/i],
+  ["Desarrollo de software", /software|desarrollo|aplicaci[oó]n|plataforma/i],
+  ["Modernización tecnológica", /modernizaci[oó]n|transformaci[oó]n digital|cloud|nube/i],
+  ["Soporte técnico", /soporte|infraestructura|sistemas/i],
+  ["Implementación de soluciones Microsoft", /microsoft|azure|dataverse|power platform/i],
+];
+
+function getPrimaryOpportunity(company) {
+  const searchableText = [
+    company.sector,
+    company.presenciaDigital,
+    ...company.prospectos.map((prospect) => prospect.notasIA),
+  ].join(" ");
+
+  return (
+    OPPORTUNITY_RULES.find(([, pattern]) => pattern.test(searchableText))?.[0] ??
+    "Evaluación tecnológica"
+  );
+}
+
+export function buildAgentUserReply(payload) {
+  const companies = payload.empresas;
+  const companyRows = companies.map((company) => {
+    const prospectCount = company.prospectos.length;
+    return `${company.nombre} | ${company.calificacion} | ${getPrimaryOpportunity(company)} | ${prospectCount}`;
+  });
+
+  return [
+    "Resumen ejecutivo",
+    `Encontré ${companies.length} empresas prospecto en el sector ${companies[0].sector}.`,
+    "",
+    "Empresa | Calificación | Oportunidad principal | Prospectos",
+    "--- | ---: | --- | ---:",
+    ...companyRows,
+    "",
+    "La información quedó preparada para su registro.",
+  ].join("\n");
+}

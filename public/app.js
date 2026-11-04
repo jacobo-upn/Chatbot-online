@@ -93,6 +93,11 @@ async function monitorDataverseSave(conversationId) {
       }
 
       const result = await response.json();
+      console.info("[chat] Estado de Power Automate:", {
+        status: result.status,
+        httpStatus: result.http_status ?? null,
+        error: result.error ?? null,
+      });
       if (result.status === "succeeded") {
         showSaveStatus(
           `Power Automate terminó correctamente (HTTP ${result.http_status}).`,
@@ -192,10 +197,18 @@ form.addEventListener("submit", async (event) => {
       payload.conversation_id = conversationId;
     }
 
+    console.info("[chat] Enviando mensaje al backend.", {
+      messageLength: message.length,
+      hasConversation: Boolean(conversationId),
+    });
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    });
+    console.info("[chat] Respuesta del backend:", {
+      httpStatus: response.status,
+      ok: response.ok,
     });
     const result = await response.json();
 
@@ -215,6 +228,10 @@ form.addEventListener("submit", async (event) => {
     }
 
     conversationId = result.conversation_id;
+    console.info("[chat] Respuesta de Foundry recibida.", {
+      dataverseSave: result.dataverse_save ?? null,
+      hasReply: typeof result.reply === "string" && result.reply.length > 0,
+    });
     addMessage(result.reply, "assistant");
     if (result.dataverse_save === "queued") {
       showSaveStatus("Solicitud enviada; esperando respuesta de Power Automate.");
@@ -232,6 +249,7 @@ form.addEventListener("submit", async (event) => {
     input.style.height = "auto";
     updateCharacterCount();
   } catch (error) {
+    console.error("[chat] Error en la solicitud:", error);
     const errorMessage =
       error instanceof Error
         ? error.message
@@ -257,3 +275,5 @@ window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (ev
 });
 
 updateCharacterCount();
+
+console.info("[chat] app.js cargado correctamente.");

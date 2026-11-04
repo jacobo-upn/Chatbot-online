@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { parseAgentResponse } from "./agent-response.js";
+import { buildAgentUserReply } from "./agent-response.js";
 import {
   redactPowerAutomateUrlForLog,
   saveToDataverseViaPowerAutomate,
@@ -65,6 +66,15 @@ test("parseAgentResponse accepts JSON inside a Markdown code fence", () => {
     parseAgentResponse(`\n\`\`\`json\n${JSON.stringify(validPayload)}\n\`\`\``),
     validPayload,
   );
+});
+
+test("buildAgentUserReply hides the integration payload", () => {
+  const reply = buildAgentUserReply(validPayload);
+
+  assert.match(reply, /Resumen ejecutivo/);
+  assert.match(reply, /Ejemplo \| 1 \|/);
+  assert.doesNotMatch(reply, /prospecto@example\.com/);
+  assert.doesNotMatch(reply, /\"empresas\"/);
 });
 
 test("saveToDataverseViaPowerAutomate posts the complete payload", async () => {

@@ -2,7 +2,10 @@ import { AIProjectClient } from "@azure/ai-projects";
 import { DefaultAzureCredential } from "@azure/identity";
 import express from "express";
 import { join } from "node:path";
-import { parseAgentResponse } from "./scripts/agent-response.js";
+import {
+  buildAgentUserReply,
+  parseAgentResponse,
+} from "./scripts/agent-response.js";
 import {
   redactPowerAutomateUrlForLog,
   saveToDataverseViaPowerAutomate,
@@ -135,46 +138,44 @@ app.post("/api/chat", async (request, response) => {
 
     let dataverseSave = "not_queued";
     let dataverseSaveError;
+    let userReply = result.output_text;
     try {
       const agentPayload = parseAgentResponse(result.output_text);
+      userReply = buildAgentUserReply(agentPayload);
       console.info(
         "JSON de prospectos generado por el agente.",
         redactPowerAutomateUrlForLog(agentPayload),
       );
       dataverseSave = "queued";
       setDataverseSaveStatus(conversation.id, "pending");
-      void saveToDataverseViaPowerAutomate(agentPayload)
-        .then((saveResult) => {
-          const status = saveResult?.ok !== true
-            ? "failed"
-            : saveResult.status === 202
-              ? "accepted"
-              : "succeeded";
-          setDataverseSaveStatus(conversation.id, status, {
-            ...(Number.isInteger(saveResult?.status)
-              ? { httpStatus: saveResult.status }
-              : {}),
-            ...(saveResult?.error ? { error: saveResult.error } : {}),
-          });
-        })
-        .catch((error) => {
-          setDataverseSaveStatus(conversation.id, "failed", {
-            error: error instanceof Error ? error.message : "unexpected",
-          });
-          console.error("Error inesperado al guardar prospectos en Dataverse.", {
-            name: error instanceof Error ? error.name : "UnknownError",
-          });
-        });
+      // Esperar el webhook evita que el proceso termine la solicitud antes de
+      // que Power Automate reciba el payload, especialmente en App Service y
+      // otros hosts que pueden interrumpir trabajo asincrónico desprendido.
+      const saveResult = await saveToDataverseViaPowerAutomate(agentPayload);
+      const status = saveResult?.ok !== true
+        ? "failed"
+        : saveResult.status === 202
+          ? "accepted"
+          : "succeeded";
+      setDataverseSaveStatus(conversation.id, status, {
+        ...(Number.isInteger(saveResult?.status)
+          ? { httpStatus: saveResult.status }
+          : {}),
+        ...(saveResult?.error ? { error: saveResult.error } : {}),
+      });
     } catch (error) {
       dataverseSaveError =
         error instanceof Error ? error.message : "Error inesperado.";
+      setDataverseSaveStatus(conversation.id, "failed", {
+        error: dataverseSaveError,
+      });
       console.error("No se enviaron prospectos a Power Automate.", {
         error: dataverseSaveError,
       });
     }
 
     const chatResponse = {
-      reply: result.output_text,
+      reply: userReply,
       conversation_id: conversation.id,
       dataverse_save: dataverseSave,
       ...(dataverseSaveError ? { dataverse_save_error: dataverseSaveError } : {}),
