@@ -1,145 +1,220 @@
-# Mi Proyecto de IA - Javier Jacobo
+# Plataforma de Prospección Comercial Inteligente para Softdev
 
-## Prospectador de Clientes
-### Power Platform + Copilot + Foundry
+## Proyecto Integrador de Inteligencia Artificial Responsable
 
----
-
-## 1. Problema
-
-Softdev es una empresa Partner de Microsoft que comenzó operaciones hace un año como un emprendimiento de Javier Jacobo.
-
-Actualmente busca nuevos clientes para ofrecer servicios de consultoría, desarrollo y soporte técnico utilizando Power Platform, Microsoft 365 y Copilot, además de aplicar los conocimientos adquiridos en el curso de IA del MOOC que cursa actualmente.
-
-La empresa no cuenta con personal adicional, por lo que una sola persona realiza actividades administrativas, financieras y técnicas.
-
-Además, la información se encuentra distribuida en diferentes repositorios como OneDrive, Teams y SharePoint, dificultando la gestión comercial y operativa.
+**Autor:** FRANCISCO JAVIER JACOBO MEZA
 
 ---
 
-## 2. Objetivo
+# 1. Introducción
 
-Automatizar el ciclo completo de prospección comercial para Softdev, incrementando la eficiencia y reduciendo tareas manuales.
+Softdev es una empresa Partner de Microsoft que inició operaciones hace aproximadamente un año como un emprendimiento enfocado en consultoría, desarrollo de soluciones empresariales y soporte especializado en tecnologías Microsoft.
 
-### Objetivos específicos
+Como parte de su estrategia de crecimiento, requiere optimizar el proceso de identificación, análisis y seguimiento de clientes potenciales. Actualmente, estas actividades se realizan de forma manual y la información se encuentra distribuida en distintas plataformas como SharePoint, OneDrive, Teams y Outlook, dificultando una visión centralizada del proceso comercial.
 
-- Encontrar clientes potenciales.
-- Analizar su presencia digital.
-- Identificar oportunidades de negocio.
-- Calificar prospectos encontrados.
-- Generar correos personalizados.
-- Gestionar el seguimiento desde una aplicación empresarial tipo CRM.
+Para resolver esta problemática, se propone el desarrollo de una plataforma de prospección comercial inteligente que combine las capacidades de Power Platform y los servicios de Inteligencia Artificial disponibles en Azure. 【1-63e2c7】
 
 ---
 
-## 3. Arquitectura
+# 2. Objetivo
+
+## Objetivo General
+
+Diseñar e implementar una plataforma de prospección comercial inteligente para Softdev que automatice la identificación, análisis, clasificación y seguimiento de clientes potenciales mediante tecnologías de Microsoft Power Platform y servicios de Inteligencia Artificial de Azure.
+
+## Objetivos Específicos
+
+- Identificar empresas potencialmente interesadas en servicios tecnológicos.
+- Recopilar información pública de organizaciones y contactos de negocio.
+- Analizar automáticamente la información mediante Inteligencia Artificial.
+- Calificar prospectos de acuerdo con criterios comerciales definidos.
+- Generar recomendaciones y comunicaciones personalizadas.
+- Centralizar la información comercial en una plataforma única.
+- Facilitar la gestión de prospectos y oportunidades mediante una aplicación empresarial desarrollada en Power Apps.
+- Reducir el esfuerzo manual asociado al proceso de prospección y seguimiento.
+
+---
+
+# 3. Arquitectura de la Solución
 
 ```mermaid
 flowchart TD
-    A["Fuentes Externas<br/>LinkedIn, Web, Directorios, Bing"]
-    B["Power Automate<br/>Recolección automática"]
-    C["Dataverse<br/>Repositorio central MVP"]
-    D["Azure AI Foundry<br/>Azure OpenAI<br/>Análisis y Scoring IA"]
-    E["Copilot + Foundry<br/>Consultas y análisis conversacional"]
-    F["Power Apps<br/>Gestión de Prospectos CRM"]
-    G["Outlook y Teams<br/>Comunicación y seguimiento"]
+
+    A["Fuentes Externas"]
+    B["Power Automate"]
+    C["Dataverse"]
+    D["Azure AI Foundry + Azure OpenAI"]
+    E["Agente Inteligente"]
+    F["Power Apps CRM"]
+    G["Microsoft 365"]
 
     A --> B
-    B --> C
-    C --> D
-    D --> E
+    B --> D
+    D --> C
+    C --> E
     E --> F
     F --> G
+```
 
-Componentes principales
-Componente	FunciónFuentes Externas	Obtención de información de prospectos
-Power Automate	Automatización de la captura y procesamiento
-Dataverse	Almacenamiento central de información
-Azure AI Foundry	Clasificación y análisis inteligente
-Copilot + Foundry	Interacción conversacional con los datos
-Power Apps	CRM para gestión comercial
-Outlook y Teams	Comunicación y seguimiento
-4. Restricciones
-Utilizar únicamente tecnologías disponibles dentro de Microsoft 365 Basic.
-No contar con presupuesto para adquirir licencias adicionales.
-Disponibilidad menor a 20 horas por semana.
-Encapsular la solución dentro del ecosistema Power Platform.
-Utilizar únicamente servicios hospedados en Azure.
-5. Principios de IA Responsable
-Transparencia
+## Componentes Principales
 
-Informar claramente cuándo la IA genera análisis, recomendaciones o contenido.
+| Componente | Función |
+|------------|----------|
+| Fuentes Externas | Obtención de información de empresas y prospectos |
+| Power Automate | Automatización e integración de procesos |
+| Dataverse | Repositorio central de información |
+| Azure AI Foundry | Análisis y enriquecimiento de datos |
+| Azure OpenAI | Procesamiento de lenguaje natural y razonamiento |
+| Agente Inteligente | Interacción conversacional y análisis comercial |
+| Power Apps | Gestión comercial y visualización de indicadores |
+| Microsoft 365 | Comunicación y colaboración |
 
-Privacidad
+---
 
-Utilizar únicamente datos autorizados y proteger la información de los prospectos.
+# 4. Restricciones y Supuestos
 
-Equidad
+## Restricciones
 
-Evaluar prospectos mediante criterios objetivos, minimizando sesgos.
+- El proyecto será desarrollado por una sola persona.
+- La disponibilidad para desarrollo será menor a 20 horas semanales.
+- Se priorizará el uso de tecnologías del ecosistema Microsoft.
+- La solución deberá operar en servicios compatibles con Microsoft Azure.
+- El alcance corresponde a un Producto Mínimo Viable (MVP).
 
-Supervisión Humana
+## Supuestos
 
-Mantener la validación y decisión final bajo control humano.
+- Se cuenta con acceso a una suscripción de Azure para el consumo de Azure OpenAI y Azure AI Foundry.
+- Se dispone de acceso a Power Platform para el desarrollo y pruebas de la solución.
+- Los datos analizados provendrán de fuentes públicas o autorizadas.
+- Los usuarios finales tendrán acceso a Microsoft 365 y Power Apps.
 
-Seguridad y Confiabilidad
+---
 
-Garantizar información precisa, segura y trazable.
+# 5. Principios de Inteligencia Artificial Responsable
 
-Responsabilidad
+## Transparencia
 
-Registrar y documentar todas las acciones realizadas por la solución.
+Los usuarios conocerán cuándo una recomendación o análisis ha sido generado por Inteligencia Artificial.
 
-Gobernanza
+## Privacidad y Seguridad
 
-Cumplir con políticas de acceso, seguridad y uso responsable de la información.
+La información recopilada será protegida mediante controles de acceso y mecanismos de almacenamiento seguros.
 
-Uso Responsable de IA Generativa
+## Equidad
 
-Validar los resultados antes de utilizarlos en procesos comerciales.
+Los criterios de análisis buscarán minimizar sesgos en la identificación y clasificación de prospectos.
 
-6. Plan de Trabajo
+## Supervisión Humana
 
-Fecha de inicio: 14 de septiembre de 2026
- Fecha de fin: 6 de noviembre de 2026
+La toma de decisiones comerciales permanecerá siempre bajo control humano.
 
-Fase	Periodo	Actividades Principales	Entregable1. Preparación y Análisis	14 sep - 20 sep	Definir alcance, arquitectura, modelo de datos y repositorios	Diseño base aprobado
-2. Diseño de la Solución	21 sep - 27 sep	Diseñar tablas Dataverse, flujos y criterios de calificación	Diseño funcional
-3. Desarrollo MVP	28 sep - 11 oct	Crear listas, Power Apps y automatizaciones iniciales	CRM básico operativo
-4. Integración de IA	12 oct - 25 oct	Integrar Azure OpenAI para análisis y scoring de prospectos	Motor IA funcionando
-5. Automatización Comercial	26 oct - 1 nov	Generación de correos, seguimiento e integración con Outlook y Teams	Flujo comercial automatizado
-6. Pruebas y Ajustes	2 nov - 5 nov	Validación integral, corrección de errores y mejoras	MVP estabilizado
-7. Go Live	6 nov	Documentación y puesta en producción	Solución operativa
-7. Solución Propuesta
+## Confiabilidad
 
-La solución estará compuesta por los siguientes componentes:
+Toda recomendación generada deberá ser validada antes de ser utilizada en procesos comerciales.
 
-Aplicación CRM desarrollada en Power Apps.
-Base de datos centralizada en Dataverse.
-Automatizaciones mediante Power Automate Cloud.
-Análisis inteligente utilizando Azure OpenAI.
-Dashboard ejecutivo implementado en Power BI.
-Agente en Azure AI Foundry para consulta conversacional de prospectos.
-Procesamiento de prospectos reales dentro de la plataforma.
-Resultado Esperado
+## Responsabilidad
 
-Una plataforma integrada capaz de:
+Las acciones automatizadas serán registradas y podrán ser auditadas en cualquier momento.
 
-Capturar prospectos automáticamente.
-Analizarlos mediante inteligencia artificial.
-Clasificarlos según potencial comercial.
-Gestionar el seguimiento comercial desde un CRM.
-Automatizar comunicaciones.
-Centralizar información y métricas para la toma de decisiones.
-Tecnologías Utilizadas
-Microsoft Power Apps
-Microsoft Power Automate
-Microsoft Dataverse
-Microsoft 365
-Microsoft Teams
-Microsoft Outlook
-Microsoft Copilot
-Azure AI Foundry
-Azure OpenAI Service
+---
 
-Un MVP funcional de prospección inteligente que permita a Softdev automatizar y escalar su proceso comercial utilizando tecnologías de Microsoft y capacidades de Inteligencia Artificial Responsable.
+# 6. Plan de Trabajo
+
+- **Fecha de inicio:** 14 de septiembre de 2026
+- **Fecha de finalización:** 6 de noviembre de 2026
+
+| Fase | Periodo | Entregable |
+|--------|---------|------------|
+| Preparación y análisis | 14 sep - 20 sep | Diseño de arquitectura |
+| Diseño de la solución | 21 sep - 27 sep | Modelo funcional aprobado |
+| Desarrollo MVP | 28 sep - 11 oct | CRM operativo |
+| Integración de IA | 12 oct - 25 oct | Motor de IA implementado |
+| Automatización comercial | 26 oct - 1 nov | Flujos automatizados |
+| Pruebas y ajustes | 2 nov - 5 nov | MVP estabilizado |
+| Puesta en producción | 6 nov | Solución funcional |
+
+---
+
+# 7. Solución Propuesta
+
+La solución integra Power Platform y Azure AI para automatizar la prospección comercial mediante un proceso centralizado y escalable.
+
+## Componentes de la Solución
+
+### Azure AI Foundry
+
+Responsable del análisis inteligente de prospectos, generación de resúmenes ejecutivos, identificación de oportunidades y recomendaciones comerciales.
+
+### Azure OpenAI
+
+Utilizado para el procesamiento de lenguaje natural, clasificación de información, evaluación de prospectos y generación de contenido personalizado.
+
+### Power Automate
+
+Orquesta la integración entre los servicios de Inteligencia Artificial y Dataverse, ejecutando procesos automáticos de captura, transformación y almacenamiento de información.
+
+### Dataverse
+
+Actúa como repositorio central para empresas, prospectos, análisis, resultados y actividades comerciales.
+
+### Power Apps
+
+Aplicación empresarial utilizada para:
+
+- Administración de empresas.
+- Gestión de prospectos.
+- Seguimiento comercial.
+- Consulta de información generada por IA.
+- Visualización de indicadores y métricas mediante gráficos integrados.
+
+### Microsoft 365
+
+Servicios de productividad utilizados para colaboración, comunicación y gestión documental.
+
+---
+
+# 8. Beneficios Esperados
+
+- Centralización de la información comercial.
+- Reducción de tareas manuales de captura y seguimiento.
+- Incremento en la velocidad de análisis de prospectos.
+- Priorización inteligente de oportunidades comerciales.
+- Mayor trazabilidad del proceso de ventas.
+- Seguimiento comercial desde una única plataforma.
+- Visualización de indicadores operativos y comerciales dentro de Power Apps.
+- Escalabilidad para incorporar nuevos procesos de negocio en el futuro.
+
+---
+
+# 9. Tecnologías Utilizadas
+
+- Microsoft Power Apps
+- Microsoft Power Automate
+- Microsoft Dataverse
+- Microsoft 365
+- Microsoft Teams
+- Microsoft Outlook
+- Microsoft Copilot
+- Azure AI Foundry
+- Azure OpenAI Service
+---
+
+# 10. Resultado Esperado
+
+Al concluir el proyecto, Softdev contará con un Producto Mínimo Viable (MVP) capaz de:
+
+1. Capturar información de prospectos.
+2. Analizar empresas mediante Inteligencia Artificial.
+3. Clasificar oportunidades comerciales.
+4. Almacenar información estructurada en Dataverse.
+5. Gestionar prospectos desde Power Apps.
+6. Automatizar procesos mediante Power Automate.
+7. Visualizar indicadores comerciales dentro de Power Apps.
+8. Proporcionar recomendaciones inteligentes para la toma de decisiones.
+9. Reducir significativamente el esfuerzo operativo asociado a la prospección comercial.
+
+---
+
+# Conclusión
+
+La implementación de esta plataforma permitirá a Softdev modernizar su proceso comercial mediante tecnologías Microsoft y capacidades de Inteligencia Artificial Responsable. La solución proporcionará una base escalable para futuras iniciativas de automatización, análisis de datos y transformación digital, contribuyendo al crecimiento sostenible del negocio.
