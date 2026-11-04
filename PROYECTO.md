@@ -199,6 +199,36 @@ Servicios de productividad utilizados para colaboración, comunicación y gesti�
 - Azure OpenAI Service
 ---
 
+# Evidencia visual
+
+## Chatbot prospectador web
+
+![Interfaz web del prospectador de clientes](imgs/prospectador%20web.png)
+
+## Power Apps
+
+### Menu principal
+
+![Menu principal de Power Apps](imgs/powerapps_menu.png)
+
+### Empresas
+
+![Vista de empresas en Power Apps](imgs/powerapps_empresas.png)
+
+### Prospectos
+
+![Vista de prospectos en Power Apps](imgs/powerapps_prospectos.png)
+
+### Estadisticas
+
+![Panel de estadisticas en Power Apps](imgs/powerapps_estad%C3%ADsticas.png)
+
+## Automatizacion hacia Dataverse
+
+![Flujo de Power Automate para enviar JSON a Dataverse](imgs/powerautomate_jsonToDataverse.png)
+
+---
+
 # 10. Resultado Esperado
 
 Al concluir el proyecto, Softdev contará con un Producto Mínimo Viable (MVP) capaz de:
